@@ -5,11 +5,17 @@ using UnityEngine.UI;
 
 public class ImageViewer : MonoBehaviour
 {
-    public MultiSourceManager mMultiSource; // 깊이 데이터, 칼라데이터를 넣을 변수
-    public RawImage mRawImage; // 이미지 넣은 변수
+    public MultiSourceManager mMultiSource;
+    public MeasureDepth mMeasureDepth;
+
+    public RawImage mRawImage; 
+    public RawImage mRawDepth;
 
     void Update()
     {
         mRawImage.texture = mMultiSource.GetColorTexture();
+
+
+        mRawDepth.texture = mMeasureDepth.mDepthTexture;
     }
 }
