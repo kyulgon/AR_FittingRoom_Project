@@ -1,7 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Specialized;
 using UnityEngine;
 using Windows.Kinect;
+
 
 public class MeasureDepth : MonoBehaviour
 {
@@ -37,13 +38,17 @@ public class MeasureDepth : MonoBehaviour
     // Kinect
     private KinectSensor mSensor = null;
     private CoordinateMapper mMapper = null;
+    private Camera mCamera = null;
+
 
     private readonly Vector2Int mDepthResolution = new Vector2Int(512, 424);
+    private Rect mRect;
 
     private void Awake()
     {
         mSensor = KinectSensor.GetDefault();
         mMapper = mSensor.CoordinateMapper;
+        mCamera = Camera.main;
 
         int arraySize = mDepthResolution.x * mDepthResolution.y;
 
@@ -58,8 +63,15 @@ public class MeasureDepth : MonoBehaviour
         {
             mValidPoints = DepthToColor();
 
+            mRect = CreateRect(mValidPoints);
+
             mDepthTexture = CreateTexture(mValidPoints);
         }
+    }
+
+    private void OnGUI()
+    {
+        GUI.Box(mRect, "");
     }
 
     private List<ValidPoint> DepthToColor()
@@ -112,6 +124,7 @@ public class MeasureDepth : MonoBehaviour
         return validPoints;
     }
 
+    
     private Texture2D CreateTexture(List<ValidPoint> validPoints)
     {
         Texture2D newTexture = new Texture2D(1920, 1080, TextureFormat.Alpha8, false);
@@ -133,6 +146,78 @@ public class MeasureDepth : MonoBehaviour
 
         return newTexture;
     }
+
+    #region Rect Creation
+    private Rect CreateRect(List<ValidPoint> points)
+    {
+        if (points.Count == 0)
+            return new Rect();
+
+        // Get corners of rect
+        Vector2 topLeft = GetTopLeft(points);
+        Vector2 bottmRight = GetBottomRigth(points);
+
+        // Translate to viewport
+        Vector2 screenTopLeft = ScreenToCamera(topLeft);
+        Vector2 screenBottomRight = ScreenToCamera(bottmRight);
+
+        // Rect dimesions
+        int width = (int)(screenBottomRight.x - screenTopLeft.x);
+        int height = (int)(screenBottomRight.y - screenTopLeft.y);
+
+        // Create
+        Vector2 size = new Vector2(width, height);
+        Rect rect = new Rect(screenTopLeft, size);
+
+        return rect;
+    }
+
+    private Vector2 GetTopLeft(List<ValidPoint> points)
+    {
+        Vector2 topLeft = new Vector2(int.MaxValue, int.MaxValue);
+
+        foreach(ValidPoint point in points)
+        {
+            // Left Mmot x
+            if (point.colorSpace.X < topLeft.x)
+                topLeft.x = point.colorSpace.X;
+
+            // Top most y
+            if (point.colorSpace.Y < topLeft.y)
+                topLeft.y = point.colorSpace.Y;
+        }
+
+        return topLeft;
+    }
+
+    private Vector2 GetBottomRigth(List<ValidPoint> points)
+    {
+        Vector2 bottomRight = new Vector2(int.MinValue, int.MinValue);
+
+        foreach (ValidPoint point in points)
+        {
+            // Right Mmot x
+            if (point.colorSpace.X > bottomRight.x)
+                bottomRight.x = point.colorSpace.X;
+
+            // Top most y
+            if (point.colorSpace.Y > bottomRight.y)
+                bottomRight.y = point.colorSpace.Y;
+        }
+
+        return bottomRight;
+    }
+
+    private Vector2 ScreenToCamera(Vector2 screenPosition)
+    {
+        Vector2 normalizdScreen = new Vector2(Mathf.InverseLerp(0, 1920, screenPosition.x), Mathf.InverseLerp(0, 1080, screenPosition.y));
+
+        Vector2 screenPoint = new Vector2(normalizdScreen.x * Camera.main.pixelWidth, normalizdScreen.y * mCamera.pixelHeight);
+
+        return screenPosition;
+    }
+
+    #endregion
 }
 
 
