@@ -33,6 +33,7 @@ public class MeasureDepth : MonoBehaviour
     private CameraSpacePoint[] mCameraSpacePoints = null;
     private ColorSpacePoint[] mColorSpacePoints = null;
     private List<ValidPoint> mValidPoints = null;
+    private List<Vector2> mTriggerPoints = null;
 
 
     // Kinect
@@ -59,6 +60,10 @@ public class MeasureDepth : MonoBehaviour
 
     private void Update()
     {
+        mValidPoints = DepthToColor();
+
+        mTriggerPoints = FilterToTrigger(mValidPoints);
+
         if(Input.GetKeyDown(KeyCode.Space))
         {
             mValidPoints = DepthToColor();
@@ -72,6 +77,15 @@ public class MeasureDepth : MonoBehaviour
     private void OnGUI()
     {
         GUI.Box(mRect, "");
+
+        if (mTriggerPoints == null)
+            return;
+
+        foreach(Vector2 point in mTriggerPoints)
+        {
+            Rect rect = new Rect(point, new Vector2(10, 10));
+            GUI.Box(rect, "");
+        }
     }
 
     private List<ValidPoint> DepthToColor()
@@ -124,7 +138,28 @@ public class MeasureDepth : MonoBehaviour
         return validPoints;
     }
 
-    
+    private List<Vector2> FilterToTrigger(List<ValidPoint> validPoints)
+    {
+        List<Vector2> triggerPoints = new List<Vector2>();
+
+        foreach (ValidPoint point in validPoints)
+        {
+            if (!point.mWithinWallDepth)
+            {
+                Vector2 screenPoint = ScreenToCamera(new Vector2(point.colorSpace.X, point.colorSpace.Y));
+
+                if (point.z < mWallDepth * mDepthSensitivity)
+                {
+                    triggerPoints.Add(screenPoint);
+                }
+
+            }
+        }
+
+        return triggerPoints;
+    }
+
+
     private Texture2D CreateTexture(List<ValidPoint> validPoints)
     {
         Texture2D newTexture = new Texture2D(1920, 1080, TextureFormat.Alpha8, false);

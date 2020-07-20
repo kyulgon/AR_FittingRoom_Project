@@ -151,6 +151,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mMultiSource: {fileID: 1182159130}
   mDepthTexture: {fileID: 0}
+  mDepthSensitivity: 1
+  mWallDepth: 1.1
+  mTopCutOff: 1
+  mBottomCutOff: -1
+  mLeftCutOff: -1
+  mRightCutOff: 1
 --- !u!4 &394600572
 Transform:
   m_ObjectHideFlags: 0
