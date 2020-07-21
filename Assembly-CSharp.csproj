@@ -75,6 +75,7 @@
     <Compile Include="Assets\Scripts\Kincet\InfraredSourceView.cs" />
     <Compile Include="Assets\Scripts\Kincet\MultiSourceManager.cs" />
     <Compile Include="Assets\Scripts\MeasureDepth.cs" />
+    <Compile Include="Assets\Scripts\RectTrigger.cs" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>F:/GitHub_portfolio/AR_FittingRoom/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
